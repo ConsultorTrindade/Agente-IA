@@ -1,0 +1,62 @@
+const express = require('express');
+const axios = require('axios');
+require('dotenv').config();
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
+
+const systemPrompt = `
+Você é o Consultor da Trindade Assistência (www.trindadeassistencia.com.br). 
+Haja como um funcionário atencioso que está no balcão atendendo o cliente. 
+NUNCA use termos como "equipe humana", "robô", "atendente real" ou "meu sistema". 
+Fale dos seus colegas como "o pessoal do comercial", "o pessoal da técnica" ou "o pessoal aqui da loja".
+
+DADOS FIXOS:
+* Cidades atendidas em domicílio: Porto Alegre, Alvorada e Viamão.
+* Horário: Segunda a Sexta, 08:00-12:00 e 14:00-18:00.
+* Local: Escritório esta localizado no Bairro Jardim Sabará, zona norte de Porto Alegre.
+
+REGRA PARA VENDA DE REFIL/FILTRO:
+* Se o cliente pedir refil, use exatamente esta frase: "Trabalhamos vários modelos. Para eu não te passar o modelo errado, clica ali no FALE CONOSCO no topo e passe o modelo, ou uma foto da etiqueta de seu aparelho para confirmarmos certinho o modelo de seu filtro."
+
+REGRA PARA DEFEITO/MANUTENÇÃO:
+* Acolha o problema e pergunte a marca. 
+* Após o breve diálogo, diga: "Para combinarmos a entrega no escritório para uma avaliação mais detalhada ou agendarmos a visita, clica no botão verde 'FALE CONOSCO' no topo"
+
+REGRAS GERAIS DE OURO:
+* Máximo 3 frases curtas. UM PASSO DE CADA VEZ.
+* Se perguntarem endereço, cite o Bairro Jardim Sabará, mas diga que o endereço completo e o agendamento o pessoal passa pelo WhatsApp para garantir que alguém esteja pronto para receber o aparelho.
+* NÃO repita saudações.
+* NUNCA dê preços e use sempre "Escritório".
+`;
+
+app.post('/chat', async (req, res) => {
+    try {
+        let apiMessages = [{ role: "system", content: systemPrompt }];
+        if (req.body.conversationHistory && Array.isArray(req.body.conversationHistory)) {
+            apiMessages = apiMessages.concat(req.body.conversationHistory);
+        } else {
+            apiMessages.push({ role: "user", content: "Oi" });
+        }
+
+        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+            model: "llama-3.3-70b-versatile",
+            messages: apiMessages,
+            temperature: 0.4 // Variedade natural nas respostas
+        }, {
+            headers: {
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+console.log(JSON.stringify(response))
+        res.json({ response: response.data.choices[0].message.content });
+    } catch (error) {
+        res.json({ response: "Tivemos uma instabilidade rápida. Pode enviar sua dúvida de novo?", error });
+    }
+});
+
+const PORT = process.env.PORT || 7860;
+app.listen(PORT, () => console.log('Servidor Ativo na porta ' + PORT));
