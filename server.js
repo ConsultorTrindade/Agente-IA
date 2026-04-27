@@ -6,7 +6,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// 🔹 CONTROLE DE FLUXO POR CLIENTE
+// 🔹 CONTROLE DE FLUXO
 const estadoFluxo = {};
 
 app.use((req, res, next) => {
@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const systemPrompt = `Você é o Consultor Trindade... (mantive igual ao seu, não alterei)`;
+const systemPrompt = `Você é o Consultor Trindade... (mantive igual ao seu)`;
 
 // MODELOS
 const MODELS = [
@@ -83,12 +83,25 @@ app.post('/chat', async (req, res) => {
             return res.json({ response: statusHorario.mensagem });
         }
 
-        const ultimaMensagem = conversationHistory[conversationHistory.length - 1].content.toLowerCase();
+        // 🔥 PEGAR ÚLTIMA MENSAGEM CORRETAMENTE
+        const ultimaMensagem = conversationHistory
+            .filter(msg => msg.role === "user")
+            .slice(-1)[0]
+            ?.content
+            ?.toLowerCase() || "";
+
         const clienteId = "cliente_unico";
+
+        console.log("DEBUG:", ultimaMensagem);
 
         // 🔥 ATIVAR FLUXO "NÃO GELA"
         if (!estadoFluxo[clienteId]) {
-            if (ultimaMensagem.includes("não gela") || ultimaMensagem.includes("nao gela")) {
+            if (
+                ultimaMensagem.includes("gela") ||
+                ultimaMensagem.includes("gelando") ||
+                ultimaMensagem.includes("fria") ||
+                ultimaMensagem.includes("esfria")
+            ) {
                 estadoFluxo[clienteId] = { etapa: "inicio" };
                 return res.json({ response: "Ele fica ligado direto ou liga e desliga rápido?" });
             }
@@ -99,7 +112,7 @@ app.post('/chat', async (req, res) => {
             const etapa = estadoFluxo[clienteId].etapa;
 
             if (etapa === "inicio") {
-                if (ultimaMensagem.includes("desliga")) {
+                if (ultimaMensagem.includes("desliga") || ultimaMensagem.includes("sozinho")) {
                     estadoFluxo[clienteId].etapa = "clicando";
                     return res.json({ response: "Você escuta um clique antes de desligar?" });
                 }
@@ -115,7 +128,7 @@ app.post('/chat', async (req, res) => {
             if (etapa === "clicando") {
                 delete estadoFluxo[clienteId];
                 return res.json({
-                    response: "Isso indica possível problema no relé ou proteção térmica. O ideal é assistência técnica. Clique no FALE CONOSCO 😊"
+                    response: "Isso indica problema no relé ou proteção térmica. O ideal é assistência técnica. Clique no FALE CONOSCO 😊"
                 });
             }
 
