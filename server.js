@@ -6,7 +6,6 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// 🔹 CONTROLE DE FLUXO
 const estadoFluxo = {};
 
 app.use((req, res, next) => {
@@ -21,30 +20,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const systemPrompt = `Você é o Consultor Trindade... (mantive igual ao seu)`;
+const systemPrompt = `Você é o Consultor Trindade...`;
 
-// MODELOS
 const MODELS = [
     "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant"
 ];
-
-function verificarHorario() {
-    const agora = new Date(new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
-    const dia = agora.getDay();
-    const hora = agora.getHours();
-    
-    if (dia === 0 || dia === 6) {
-        return { aberto: false, mensagem: "A gente não trabalha no fim de semana..." };
-    }
-    if (hora >= 12 && hora < 14) {
-        return { aberto: false, mensagem: "Estamos em almoço agora..." };
-    }
-    if (hora < 8 || hora >= 18) {
-        return { aberto: false, mensagem: "Atendemos das 8h às 18h..." };
-    }
-    return { aberto: true, mensagem: null };
-}
 
 async function callGroq(messages, modelIndex = 0) {
     try {
@@ -76,25 +57,14 @@ async function callGroq(messages, modelIndex = 0) {
 
 app.post('/chat', async (req, res) => {
     try {
-        const { conversationHistory } = req.body;
+        const { conversationHistory, message } = req.body;
 
-        const statusHorario = verificarHorario();
-        if (!statusHorario.aberto) {
-            return res.json({ response: statusHorario.mensagem });
-        }
-
-        // 🔥 PEGAR ÚLTIMA MENSAGEM CORRETAMENTE
-        const ultimaMensagem = conversationHistory
-            .filter(msg => msg.role === "user")
-            .slice(-1)[0]
-            ?.content
-            ?.toLowerCase() || "";
-
+        const ultimaMensagem = (message || "").toLowerCase();
         const clienteId = "cliente_unico";
 
         console.log("DEBUG:", ultimaMensagem);
 
-        // 🔥 ATIVAR FLUXO "NÃO GELA"
+        // 🔥 ATIVAR FLUXO
         if (!estadoFluxo[clienteId]) {
             if (
                 ultimaMensagem.includes("gela") ||
@@ -128,24 +98,22 @@ app.post('/chat', async (req, res) => {
             if (etapa === "clicando") {
                 delete estadoFluxo[clienteId];
                 return res.json({
-                    response: "Isso indica problema no relé ou proteção térmica. O ideal é assistência técnica. Clique no FALE CONOSCO 😊"
+                    response: "Isso indica problema no relé. Melhor assistência técnica. Clique no FALE CONOSCO 😊"
                 });
             }
 
             if (etapa === "barulho") {
                 delete estadoFluxo[clienteId];
                 return res.json({
-                    response: "Pode ser gás ou compressor. Melhor um técnico analisar. Clique no FALE CONOSCO 😊"
+                    response: "Pode ser compressor ou gás. Melhor técnico analisar. Clique no FALE CONOSCO 😊"
                 });
             }
         }
 
         // 🔹 IA NORMAL
-        const history = conversationHistory.slice(-12);
-
         const messages = [
             { role: "system", content: systemPrompt },
-            ...history
+            ...(conversationHistory || [])
         ];
 
         const reply = await callGroq(messages);
@@ -153,16 +121,10 @@ app.post('/chat', async (req, res) => {
         res.json({ response: reply });
 
     } catch (error) {
-        res.json({ response: "Desculpa, tive um probleminha 😅 Clique no FALE CONOSCO!" });
+        res.json({ response: "Erro 😅 Clique no FALE CONOSCO!" });
     }
 });
 
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
-});
-
-const PORT = process.env.PORT || 7860;
-
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+app.listen(process.env.PORT || 7860, () => {
+    console.log("Servidor rodando 🚀");
 });
