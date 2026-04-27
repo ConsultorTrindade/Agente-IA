@@ -83,10 +83,13 @@
         showTyping();
         try {
             const res = await fetch('https://trindade-assistencia-consultor-trindade.hf.space/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ conversationHistory })
-            });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message: text,
+    conversationHistory: conversationHistory
+  })
+});
             const data = await res.json();
             hideTyping();
             addMessage(data.response, 'bot');
