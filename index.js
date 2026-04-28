@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 // O restante do seu código (SystemPrompt, callGroq e app.post('/chat')) continua abaixo...
 
 // Linha 46 em diante:
-const systemPrompt = `Você é o Consultor Trindade, técnico da Trindade Assistência em Porto Alegre.
+const systemPrompt = `Você é o Consultor Trindade, técnico da Trindade Assistência em Porto Alegre.`
 
 ESTA É SUA BASE DE CONHECIMENTO TÉCNICO (USE SEMPRE):
 ${tabelaDiagnostico}
