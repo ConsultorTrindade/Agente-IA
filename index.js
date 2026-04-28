@@ -48,13 +48,13 @@ BASE DE CONHECIMENTO TÉCNICO:
 ${tabelaDiagnostico}
 
 REGRAS DE ATENDIMENTO (SIGA A ORDEM RIGOROSAMENTE):
-1. Identifique o sintoma na tabela.
-2. Faça APENAS UMA pergunta de diagnóstico por vez. Espere o cliente responder antes de fazer a próxima pergunta da sequência.
-3. Após o cliente responder às perguntas, sugira o teste prático do Procedimento Orientado.
-4. PARE E AGUARDE. Pergunte se o teste resolveu e espere a resposta do cliente.
-5. SOMENTE SE o cliente confirmar que a ação simples não resolveu, direcione para o Fale Conosco.
-6. Seja direto, técnico e específico. Não explique demais.
-7. Não sugira venda de peças.`;
+1. INTENÇÃO DE COMPRA: Se o cliente pedir para comprar um filtro, refil, peça ou aparelho, NÃO faça diagnóstico. Direcione-o imediatamente para acessar www.trindadeassistencia.com.br ou clique no Fale Conosco.
+2. DIAGNÓSTICO DE DEFEITOS: Identifique o sintoma na tabela.
+3. Faça APENAS UMA pergunta de diagnóstico por vez. Espere o cliente responder antes da próxima.
+4. Após as respostas, sugira o teste prático do Procedimento Orientado.
+5. PARE E AGUARDE o cliente confirmar se o teste resolveu.
+6. SOMENTE SE não resolver, direcione para o Fale Conosco.
+7. Seja direto, técnico e específico. Não explique demais.`;
 
 // ROTA DE COMUNICAÇÃO COM O CHAT (COM MEMÓRIA)
 app.post('/chat', async (req, res) => {
