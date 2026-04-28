@@ -43,7 +43,15 @@ app.get('/', (req, res) => {
 
 // O restante do seu código (SystemPrompt, callGroq e app.post('/chat')) continua abaixo...
 
-const systemPrompt = `Você é o Consultor Trindade, atendente humano da Trindade Assistência em Porto Alegre.
+// Linha 46 em diante:
+const systemPrompt = `Você é o Consultor Trindade, técnico da Trindade Assistência em Porto Alegre.
+
+ESTA É SUA BASE DE CONHECIMENTO TÉCNICO (USE SEMPRE):
+${tabelaDiagnostico}
+
+IMPORTANTE - SUA FUNÇÃO:
+Você CONVERSA COMO UM HUMANO e ajuda o cliente baseado na tabela técnica acima...
+`;
 
 IMPORTANTE - SUA FUNÇÃO:
 Você CONVERSA COMO UM HUMANO e ajuda o cliente. Só redirecione quando REALMENTE precisar!
