@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
+app.use(express.static(path.join(__dirname)));
 
 // CARREGAMENTO DA TABELA TÉCNICA
 const csvPath = path.join(process.cwd(), 'tabela_diagnostico.csv');
