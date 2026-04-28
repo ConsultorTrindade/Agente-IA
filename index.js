@@ -1,13 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const fs = require('fs'); // Adicionado para ler a tabela
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 
-// CONFIGURAÇÃO DA TABELA PARA VERCEL
+// 1. CAMINHO DA TABELA (Localiza o CSV na mesma pasta do código)
 const csvPath = path.join(process.cwd(), 'tabela_diagnostico.csv');
 let tabelaDiagnostico = "";
 
@@ -16,13 +16,13 @@ try {
         tabelaDiagnostico = fs.readFileSync(csvPath, 'utf8');
         console.log("✅ Tabela carregada com sucesso");
     } else {
-        console.error("❌ Arquivo tabela_diagnostico.csv não encontrado na raiz");
+        console.error("❌ Erro: Arquivo tabela_diagnostico.csv não encontrado");
     }
 } catch (err) {
     console.error("❌ Erro ao ler a tabela:", err.message);
 }
 
-// CORS
+// 2. CONFIGURAÇÃO DE ACESSO (CORS)
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "*");
@@ -30,6 +30,18 @@ app.use((req, res, next) => {
     if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
 });
+
+// 3. CAMINHO DO HTML (Resolve o erro "Cannot GET /")
+app.get('/', (req, res) => {
+    const htmlPath = path.join(process.cwd(), 'index.html');
+    if (fs.existsSync(htmlPath)) {
+        res.sendFile(htmlPath);
+    } else {
+        res.status(404).send("Erro: Arquivo index.html não encontrado na raiz.");
+    }
+});
+
+// O restante do seu código (SystemPrompt, callGroq e app.post('/chat')) continua abaixo...
 
 const systemPrompt = `Você é o Consultor Trindade, atendente humano da Trindade Assistência em Porto Alegre.
 
