@@ -1,22 +1,34 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs'); // Adicionado para ler a tabela
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 
+// CONFIGURAÇÃO DA TABELA PARA VERCEL
+const csvPath = path.join(process.cwd(), 'tabela_diagnostico.csv');
+let tabelaDiagnostico = "";
+
+try {
+    if (fs.existsSync(csvPath)) {
+        tabelaDiagnostico = fs.readFileSync(csvPath, 'utf8');
+        console.log("✅ Tabela carregada com sucesso");
+    } else {
+        console.error("❌ Arquivo tabela_diagnostico.csv não encontrado na raiz");
+    }
+} catch (err) {
+    console.error("❌ Erro ao ler a tabela:", err.message);
+}
+
+// CORS
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "*");
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
-});
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const systemPrompt = `Você é o Consultor Trindade, atendente humano da Trindade Assistência em Porto Alegre.
@@ -94,6 +106,17 @@ Você: "Humm, pode ser a fonte. Tenta em outra tomada pra testar?"
 Cliente: "Tentei mas nada"
 Você: "Nesse caso, precisa de um técnico analisar. Clica no FALE CONOSCO que a gente marca uma visita 😊"
 
+═══════════════════════════════════════════════════════════
+BASE DE CONHECIMENTO TÉCNICO (TABELA DE DIAGNÓSTICO):
+═══════════════════════════════════════════════════════════
+Use os dados abaixo para guiar a sua conversa:
+1. Identifique a "Marca" e o "Sintoma do Cliente".
+2. Siga a "Perguntas de Diagnóstico (Sequência)" fazendo UMA pergunta por vez.
+3. Se o sintoma bater com a tabela, sugira o "Procedimento Orientado".
+4. Se o nível for "Avançado", direcione para o FALE CONOSCO após a triagem.
+
+DADOS DA TABELA:
+${tabelaDiagnostico}
 ═══════════════════════════════════════════════════════════
 ABREVIAÇÃO - QUANDO REDIRECIONAR:
 ═══════════════════════════════════════════════════════════
