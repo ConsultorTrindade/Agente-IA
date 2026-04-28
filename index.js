@@ -7,7 +7,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// 1. CARREGAMENTO DA TABELA TÉCNICA
+// CARREGAMENTO DA TABELA TÉCNICA
 const csvPath = path.join(process.cwd(), 'tabela_diagnostico.csv');
 let tabelaDiagnostico = "";
 
@@ -22,7 +22,7 @@ try {
     console.error("❌ Erro ao ler a tabela:", err.message);
 }
 
-// 2. CONFIGURAÇÃO DE ACESSO (CORS)
+// CONFIGURAÇÃO DE ACESSO
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "*");
@@ -31,7 +31,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// 3. ROTA PARA O CHAT HTML
+// ROTA PARA O CHAT HTML
 app.get('/', (req, res) => {
     const htmlPath = path.join(process.cwd(), 'index.html');
     if (fs.existsSync(htmlPath)) {
@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
     }
 });
 
-// 4. PROMPT DO SISTEMA (AJUSTADO COM CRASE FINAL)
+// PROMPT DO SISTEMA
 const systemPrompt = `Você é o Consultor Trindade, especialista técnico da Trindade Assistência.
 
 BASE DE CONHECIMENTO TÉCNICO:
@@ -55,17 +55,22 @@ REGRAS DE ATENDIMENTO (SIGA A ORDEM RIGOROSAMENTE):
 5. Seja direto, técnico e específico. Não explique demais.
 6. Não sugira venda de peças.`;
 
-// 5. ROTA DE COMUNICAÇÃO COM O CHAT
+// ROTA DE COMUNICAÇÃO COM O CHAT (COM MEMÓRIA)
 app.post('/chat', async (req, res) => {
-    const { message } = req.body;
+    // Recebe a mensagem e o histórico enviado pelo index.html
+    const { message, history = [] } = req.body; 
 
     try {
+        // Constrói a memória: Prompt + Histórico + Mensagem Nova
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...history,
+            { role: "user", content: message }
+        ];
+
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
             model: "llama-3.3-70b-versatile",
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: message }
-            ],
+            messages: messages,
             temperature: 0.5
         }, {
             headers: {
