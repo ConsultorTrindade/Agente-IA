@@ -149,6 +149,7 @@ app.post('/chat', async (req, res) => {
 
 const minutosAgora = h * 60 + m;
 const minutosFechamento = 18 * 60;
+    const HORA_ATUAL = `${h}:${m.toString().padStart(2, '0')}`;
 
 const minutosRestantes = minutosFechamento - minutosAgora;
 
@@ -170,6 +171,7 @@ const minutosRestantes = minutosFechamento - minutosAgora;
 
 STATUS_ATENDIMENTO: ${STATUS_ATENDIMENTO}
 MINUTOS_RESTANTES: ${minutosRestantes}
+HORA_ATUAL: ${HORA_ATUAL}
 
 REGRA CRÍTICA (PRIORIDADE MÁXIMA):
 - O STATUS_ATENDIMENTO representa o horário REAL atual.
