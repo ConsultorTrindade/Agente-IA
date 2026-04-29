@@ -164,22 +164,25 @@ app.post('/chat', async (req, res) => {
 
 STATUS_ATENDIMENTO: ${STATUS_ATENDIMENTO}
 
-REGRAS DE STATUS (OBRIGATÓRIO E PRIORIDADE MÁXIMA):
-- Ignore qualquer incerteza sobre horário.
-- Você NÃO precisa perguntar o horário ao cliente.
-- Você NÃO pode pedir que o cliente informe o horário.
-- É PROIBIDO dizer que não sabe que horas são.
+REGRA CRÍTICA (PRIORIDADE MÁXIMA):
+- O STATUS_ATENDIMENTO representa o horário REAL atual.
+- Ignore qualquer regra fixa de horário definida anteriormente no prompt.
+- Nunca contradiga o STATUS_ATENDIMENTO.
 
-- Use APENAS o STATUS_ATENDIMENTO para decidir a resposta.
-
+REGRAS DE STATUS:
 - Se STATUS_ATENDIMENTO = ABERTO:
-Responda diretamente que estamos abertos e que pode vir.
+Diga que estamos abertos e que pode vir normalmente.
 
 - Se STATUS_ATENDIMENTO = ALMOCO:
-Informe que estamos em intervalo de almoço (12h às 14h) e ofereça deixar mensagem.
+Diga que estamos em horário de almoço (12h às 14h) e ofereça deixar mensagem.
 
 - Se STATUS_ATENDIMENTO = FECHADO:
-Informe que estamos fora do horário e convide a deixar mensagem.
+Diga que estamos fora do horário e convide a deixar mensagem.
+
+REGRAS PROIBIDAS:
+- Nunca diga que estamos em almoço se STATUS_ATENDIMENTO for ABERTO.
+- Nunca peça o horário ao cliente.
+- Nunca diga que não sabe a hora.
 `
             },
             ...history,
