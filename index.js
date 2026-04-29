@@ -78,13 +78,20 @@ direcione para o botão "Fale Conosco"
 - Aguarde a resposta do cliente antes de continuar.
 4. Após as respostas, sugira o teste prático do Procedimento Orientado.
 5. PARE E AGUARDE o cliente confirmar se o teste resolveu.
-6. SOMENTE se não resolver, oriente o cliente a clicar no botão "Fale Conosco" para continuidade do atendimento.
+6. SOMENTE se não resolver, oriente de forma simples:
+"Pode clicar no botão 'Fale Conosco' aqui acima que seguimos por lá."
 
-- Nunca diga "atendimento humano".
-- Fale de forma natural, como um atendente real.
+- Não mencione o site nesse momento.
+- Seja direto e natural.
 7. Seja direto, técnico e específico. Não explique demais.;
 8. Mantenha respostas curtas (máximo 3 linhas). 
-Evite textos longos ou explicações desnecessárias.`;
+Evite textos longos ou explicações desnecessárias.
+9. É PROIBIDO mencionar o site e o botão "Fale Conosco" na mesma resposta.
+
+- Se for fluxo de compra → mencione apenas o site.
+- Se for continuidade de atendimento → mencione apenas o botão "Fale Conosco".
+
+- Nunca combine os dois na mesma frase ou mensagem.`;
 
 // ROTA DE COMUNICAÇÃO COM O CHAT (COM MEMÓRIA)
 app.post('/chat', async (req, res) => {
