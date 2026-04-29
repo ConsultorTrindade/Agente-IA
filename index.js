@@ -67,11 +67,15 @@ direcione para clicar no botão "Fale Conosco" (atendimento humano).
 
 - NÃO mande direto para o Fale Conosco sem tentar ajudar antes.
 2. DIAGNÓSTICO DE DEFEITOS: Identifique o sintoma na tabela.
-3. Faça APENAS UMA pergunta de diagnóstico por vez. Espere o cliente responder antes da próxima.
+3. Faça APENAS UMA pergunta por vez.
+- Nunca faça duas ou mais perguntas na mesma mensagem.
+- Aguarde a resposta do cliente antes de continuar.
 4. Após as respostas, sugira o teste prático do Procedimento Orientado.
 5. PARE E AGUARDE o cliente confirmar se o teste resolveu.
 6. SOMENTE SE não resolver, direcione para o Fale Conosco.
 7. Seja direto, técnico e específico. Não explique demais.`;
+8. Mantenha respostas curtas (máximo 3 linhas). 
+Evite textos longos ou explicações desnecessárias.
 
 // ROTA DE COMUNICAÇÃO COM O CHAT (COM MEMÓRIA)
 app.post('/chat', async (req, res) => {
