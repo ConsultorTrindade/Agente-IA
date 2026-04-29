@@ -99,12 +99,13 @@ Se o cliente quiser comprar:
 
 - Pergunte marca e modelo
 - Ajude a identificar o refil
-- Se souber, indique o site www.trindadeassistencia.com.br, se não souber orientge o cliente a clicar no "Fale Conosco" para mais informações.
+- Se souber, indique o site www.trindadeassistencia.com.br, se não souber oriente o cliente a clicar no "Fale Conosco" para mais informações.
 
 - NÃO mencione "Fale Conosco" nesse fluxo de compra
 
 - SOMENTE se o cliente disser que não encontrou ou pedir ajuda humana:
 direcione para o botão "Fale Conosco"
+
 2. DIAGNÓSTICO DE DEFEITOS: Identifique o sintoma na tabela.
 3. Faça APENAS UMA pergunta por vez.
 - Nunca faça duas ou mais perguntas na mesma frase.
@@ -116,9 +117,11 @@ direcione para o botão "Fale Conosco"
 
 - Não mencione o site nesse momento.
 - Seja direto e natural.
+
 7. Seja direto, técnico e específico. Não explique demais.;
 8. Mantenha respostas curtas (máximo 3 linhas). 
 Evite textos longos ou explicações desnecessárias.
+
 9. É PROIBIDO mencionar o site e o botão "Fale Conosco" na mesma resposta.
 
 - Se for fluxo de compra → mencione apenas o site.
@@ -128,13 +131,45 @@ Evite textos longos ou explicações desnecessárias.
 
 // ROTA DE COMUNICAÇÃO COM O CHAT (COM MEMÓRIA)
 app.post('/chat', async (req, res) => {
-    // Recebe a mensagem e o histórico enviado pelo index.html
-    const { message, history = [] } = req.body; 
+
+    const { message, history = [] } = req.body;
+
+    // ===== LÓGICA DE HORÁRIO =====
+    const agora = new Date();
+
+    const hora = agora.toLocaleString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+    }).split(":");
+
+    const h = parseInt(hora[0]);
+
+    let STATUS_ATENDIMENTO = "";
+
+    if (h >= 12 && h < 14) {
+        STATUS_ATENDIMENTO = "ALMOCO";
+    } else if (h >= 8 && h < 18) {
+        STATUS_ATENDIMENTO = "ABERTO";
+    } else {
+        STATUS_ATENDIMENTO = "FECHADO";
+    }
 
     try {
-        // Constrói a memória: Prompt + Histórico + Mensagem Nova
         const messages = [
-            { role: "system", content: systemPrompt },
+            {
+                role: "system",
+                content: systemPrompt + `
+
+STATUS_ATENDIMENTO: ${STATUS_ATENDIMENTO}
+
+REGRAS DE STATUS:
+- Se STATUS_ATENDIMENTO = ALMOCO → informe que estamos em horário de almoço (12h às 14h) e ofereça deixar mensagem.
+- Se STATUS_ATENDIMENTO = FECHADO → informe que estamos fora do horário e convide a deixar mensagem.
+- Se STATUS_ATENDIMENTO = ABERTO → atenda normalmente.
+`
+            },
             ...history,
             { role: "user", content: message }
         ];
