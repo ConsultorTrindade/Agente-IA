@@ -73,9 +73,9 @@ direcione para clicar no botão "Fale Conosco" (atendimento humano).
 4. Após as respostas, sugira o teste prático do Procedimento Orientado.
 5. PARE E AGUARDE o cliente confirmar se o teste resolveu.
 6. SOMENTE SE não resolver, direcione para o Fale Conosco.
-7. Seja direto, técnico e específico. Não explique demais.`;
+7. Seja direto, técnico e específico. Não explique demais.;
 8. Mantenha respostas curtas (máximo 3 linhas). 
-Evite textos longos ou explicações desnecessárias.
+Evite textos longos ou explicações desnecessárias`.
 
 // ROTA DE COMUNICAÇÃO COM O CHAT (COM MEMÓRIA)
 app.post('/chat', async (req, res) => {
