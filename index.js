@@ -165,6 +165,7 @@ app.post('/chat', async (req, res) => {
 const minutosAgora = h * 60 + m;
 const minutosFechamento = 18 * 60;
     const HORA_ATUAL = `${h}:${m.toString().padStart(2, '0')}`;
+    console.log("DEBUG OK - rota /chat rodando");
 
 const minutosRestantes = minutosFechamento - minutosAgora;
 
@@ -212,7 +213,15 @@ REGRAS PROIBIDAS:
             ...history,
             { role: "user", content: message }
         ];
-
+console.log("===== DEBUG CHAT =====");
+console.log("Mensagem:", message);
+console.log("History tamanho:", history.length);
+console.log("STATUS:", STATUS_ATENDIMENTO);
+console.log("HORA_ATUAL:", HORA_ATUAL);
+console.log("MINUTOS_RESTANTES:", minutosRestantes);
+console.log("PROMPT SIZE:", systemPrompt.length);
+console.log("======================");
+        
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
             model: "llama-3.3-70b-versatile",
             messages: messages,
