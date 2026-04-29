@@ -8,22 +8,29 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// CARREGAMENTO DA TABELA TÉCNICA
+// =====================
+// TABELA
+// =====================
 const csvPath = path.join(process.cwd(), 'tabela_diagnostico.csv');
 let tabelaDiagnostico = "";
 
 try {
     if (fs.existsSync(csvPath)) {
-        tabelaDiagnostico = fs.readFileSync(csvPath, 'utf8');
+        tabelaDiagnostico = fs.readFileSync(csvPath, 'utf8')
+            .replace(/\r/g, '')
+            .trim();
+
         console.log("✅ Tabela carregada com sucesso");
     } else {
-        console.error("❌ Erro: Arquivo tabela_diagnostico.csv não encontrado");
+        console.error("❌ Arquivo tabela_diagnostico.csv não encontrado");
     }
 } catch (err) {
-    console.error("❌ Erro ao ler a tabela:", err.message);
+    console.error("❌ Erro ao ler tabela:", err.message);
 }
 
-// CONFIGURAÇÃO DE ACESSO
+// =====================
+// CORS
+// =====================
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "*");
@@ -32,124 +39,46 @@ app.use((req, res, next) => {
     next();
 });
 
-// ROTA PARA O CHAT HTML
+// =====================
+// FRONT
+// =====================
 app.get('/', (req, res) => {
     const htmlPath = path.join(process.cwd(), 'index.html');
     if (fs.existsSync(htmlPath)) {
         res.sendFile(htmlPath);
     } else {
-        res.status(404).send("Erro: Arquivo index.html não encontrado.");
+        res.status(404).send("Erro: index.html não encontrado.");
     }
 });
 
-// PROMPT DO SISTEMA
-const systemPrompt = `Você é o Consultor Trindade, especialista técnico da Trindade Assistência. Site oficial: www.trindadeassistencia.com.br.
+// =====================
+// SYSTEM PROMPT
+// =====================
+const systemPrompt = `
+Você é o Consultor Trindade, especialista técnico da Trindade Assistência.
 
-BASE DE CONHECIMENTO TÉCNICO:
-${tabelaDiagnostico}
+BASE DE CONHECIMENTO:
+${tabelaDiagnostico.slice(0, 6000)}
 
-REGRAS DE NEGÓCIO:
-- HORÁRIO:
-- Se o cliente perguntar horário, informe usando HORA_ATUAL quando disponível.
-- Caso HORA_ATUAL esteja presente, ela tem prioridade sobre qualquer outra regra.
+REGRAS:
+- Seja direto e técnico
+- Nunca peça horário ao cliente
+- Nunca mencione "atendimento humano"
+- Respostas curtas
+`;
 
-- Se estiver fora do horário, diga de forma natural que o atendimento retornará no próximo expediente.
-
-- Nunca use o termo "atendimento humano".
-- Fale sempre como se você fosse o próprio atendente.
-- PRODUTOS: Atenda APENAS Purificadores, Bebedouros e Máquinas de Gelo. É terminantemente PROIBIDO mencionar Ar-Condicionado ou outros eletrodomésticos.
-- MARCAS (LÓGICA REATIVA): Não liste marcas proativamente. Se o cliente perguntar, informe que atendemos TODAS as marcas (Ex: IBBL, Electrolux, Esmaltec, Consul). 
-- GARANTIA: Esclareça (apenas se questionado) que somos autorizados (garantia de fábrica) apenas para Polar, Libell e Top Life. Para as demais marcas, o atendimento é exclusivamente particular (fora da garantia).
-- INTERPRETAÇÃO DE HORÁRIO:
-Se o cliente informar um horário (ex: 12:30), você deve comparar com o horário de funcionamento antes de responder.
-
-- Se estiver dentro do horário:
-confirme normalmente e prossiga com o atendimento.
-
-- Se estiver fora do horário:
-informe de forma natural que o atendimento retorna no próximo horário.
-
-- Nunca pergunte ao cliente se o horário está dentro do funcionamento.
-Você deve interpretar isso automaticamente.
-- Quando o cliente perguntar se dá tempo de chegar antes de fechar:
-
-Use HORA_ATUAL e MINUTOS_RESTANTES apenas para decisão interna.
-
-Responda de forma natural e humana, sem mencionar hora exata.
-
-Exemplos:
-- "Sim 👍 dá tempo de vir tranquilo antes do fechamento."
-- "Sim, ainda conseguimos te atender hoje sem problema."
-- "Vai dar tempo sim 👍 pode vir com calma."
-- "Hoje está mais no limite do horário, mas ainda dá tempo se vier agora."
-
-- Evite mencionar a hora exata ao cliente, a menos que ele pergunte diretamente "que horas são".
-- REGRA FINAL DE PRIORIDADE:
-HORA_ATUAL e STATUS_ATENDIMENTO sempre substituem qualquer outra regra antiga sobre horário.
-- HORÁRIO DE ALMOÇO (COM CONTINUIDADE):
-Das 12:00 às 14:00 não há atendimento no momento.
-
-- Se o cliente quiser ir nesse horário:
-explique de forma educada que estamos em intervalo.
-
-- Ofereça duas opções de forma natural:
-1. Pode vir após as 14:00
-2. Ou pode clicar no botão "Fale Conosco" e deixar a mensagem, que retornamos assim que voltarmos
-
-- Fale de forma acolhedora, nunca cortando o cliente.
-- MÁQUINA DE GELO:
-Máquinas de gelo NÃO utilizam filtro de água interno como purificadores.
-
-- É PROIBIDO sugerir troca ou verificação de filtro para máquinas de gelo.
-
-- Para máquinas de gelo, foque em:
-Oriente o cliente a verificar se tem algum barulho diferente e se a ventilação está ligada, caso esteja tudo ok direcione para o "Fale Conosco".
-
-REGRAS DE ATENDIMENTO (SIGA A ORDEM RIGOROSAMENTE):
-- Antes de sugerir qualquer teste, identifique corretamente o tipo de equipamento.
-
-- Nunca aplique diagnóstico de purificador em máquina de gelo.
-1. INTENÇÃO DE COMPRA:
-Se o cliente quiser comprar:
-
-- Pergunte marca e modelo
-- Ajude a identificar o refil
-- Se souber, indique o site www.trindadeassistencia.com.br, se não souber oriente o cliente a clicar no "Fale Conosco" para mais informações.
-
-- NÃO mencione "Fale Conosco" nesse fluxo de compra
-
-- SOMENTE se o cliente disser que não encontrou ou pedir ajuda humana:
-direcione para o botão "Fale Conosco"
-
-2. DIAGNÓSTICO DE DEFEITOS: Identifique o sintoma na tabela.
-3. Faça APENAS UMA pergunta por vez.
-- Nunca faça duas ou mais perguntas na mesma frase.
-- Aguarde a resposta do cliente antes de continuar.
-4. Após as respostas, sugira o teste prático do Procedimento Orientado.
-5. PARE E AGUARDE o cliente confirmar se o teste resolveu.
-6. SOMENTE se não resolver, oriente de forma simples:
-"Pode clicar no botão 'Fale Conosco' aqui acima que a gente vai te orientar por lá."
-
-- Não mencione o site nesse momento.
-- Seja direto e natural.
-
-7. Seja direto, técnico e específico. Não explique demais.;
-8. Mantenha respostas curtas (máximo 3 linhas). 
-Evite textos longos ou explicações desnecessárias.
-
-9. É PROIBIDO mencionar o site e o botão "Fale Conosco" na mesma resposta.
-
-- Se for fluxo de compra → mencione apenas o site.
-- Se for continuidade de atendimento → mencione apenas o botão "Fale Conosco".
-
-- Nunca combine os dois na mesma frase ou mensagem.`;
-
-// ROTA DE COMUNICAÇÃO COM O CHAT (COM MEMÓRIA)
+// =====================
+// CHAT
+// =====================
 app.post('/chat', async (req, res) => {
 
-    const { message, history = [] } = req.body;
+    const { message, history } = req.body;
 
-    // ===== LÓGICA DE HORÁRIO =====
+    // 🔴 validação básica
+    if (!message || typeof message !== "string") {
+        return res.status(400).json({ response: "Mensagem inválida." });
+    }
+
     const agora = new Date();
 
     const hora = agora.toLocaleString("pt-BR", {
@@ -162,12 +91,10 @@ app.post('/chat', async (req, res) => {
     const h = parseInt(hora[0]);
     const m = parseInt(hora[1]);
 
-const minutosAgora = h * 60 + m;
-const minutosFechamento = 18 * 60;
     const HORA_ATUAL = `${h}:${m.toString().padStart(2, '0')}`;
-    console.log("DEBUG OK - rota /chat rodando");
-
-const minutosRestantes = minutosFechamento - minutosAgora;
+    const minutosAgora = h * 60 + m;
+    const minutosFechamento = 18 * 60;
+    const minutosRestantes = minutosFechamento - minutosAgora;
 
     let STATUS_ATENDIMENTO = "";
 
@@ -180,67 +107,53 @@ const minutosRestantes = minutosFechamento - minutosAgora;
     }
 
     try {
+
         const messages = [
             {
                 role: "system",
-                content: systemPrompt + `
+                content: (systemPrompt + `
 
 STATUS_ATENDIMENTO: ${STATUS_ATENDIMENTO}
 MINUTOS_RESTANTES: ${minutosRestantes}
 HORA_ATUAL: ${HORA_ATUAL}
-
-REGRA CRÍTICA (PRIORIDADE MÁXIMA):
-- O STATUS_ATENDIMENTO representa o horário REAL atual.
-- Ignore qualquer regra fixa de horário definida anteriormente no prompt.
-- Nunca contradiga o STATUS_ATENDIMENTO.
-
-REGRAS DE STATUS:
-- Se STATUS_ATENDIMENTO = ABERTO:
-Diga que estamos abertos e que pode vir normalmente.
-
-- Se STATUS_ATENDIMENTO = ALMOCO:
-Diga que estamos em horário de almoço (12h às 14h) e ofereça deixar mensagem.
-
-- Se STATUS_ATENDIMENTO = FECHADO:
-Diga que estamos fora do horário e convide a deixar mensagem.
-
-REGRAS PROIBIDAS:
-- Nunca diga que estamos em almoço se STATUS_ATENDIMENTO for ABERTO.
-- Nunca peça o horário ao cliente.
-- Nunca diga que não sabe a hora.
-`
+`).slice(0, 12000)
             },
-            ...history,
+
+            ...(Array.isArray(history) ? history : []),
+
             { role: "user", content: message }
         ];
-console.log("===== DEBUG CHAT =====");
-console.log("Mensagem:", message);
-console.log("History tamanho:", history.length);
-console.log("STATUS:", STATUS_ATENDIMENTO);
-console.log("HORA_ATUAL:", HORA_ATUAL);
-console.log("MINUTOS_RESTANTES:", minutosRestantes);
-console.log("PROMPT SIZE:", systemPrompt.length);
-console.log("======================");
-        
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama-3.3-70b-versatile",
-            messages: messages,
-            temperature: 0.5
-        }, {
-            headers: {
-                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
+
+        const response = await axios.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            {
+                model: "llama-3.3-70b-versatile",
+                messages,
+                temperature: 0.5
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
             }
+        );
+
+        res.json({
+            response: response.data.choices[0].message.content
         });
 
-        res.json({ response: response.data.choices[0].message.content });
     } catch (error) {
-        console.error("Erro na API Groq:", error.response?.data || error.message);
-        res.status(500).json({ response: "Erro ao processar sua solicitação." });
+        console.error("❌ ERRO GROQ:", error?.response?.data || error.message);
+
+        res.status(500).json({
+            response: "Erro ao processar sua solicitação."
+        });
     }
 });
 
+// =====================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
