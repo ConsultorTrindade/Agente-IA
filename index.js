@@ -108,21 +108,43 @@ app.post('/chat', async (req, res) => {
 
     try {
 
-        const messages = [
-            {
-                role: "system",
-                content: (systemPrompt + `
+       const safeHistory = Array.isArray(history)
+    ? history
+        .filter(m =>
+            m &&
+            typeof m.content === "string" &&
+            m.content.trim() !== "" &&
+            (m.role === "user" || m.role === "assistant")
+        )
+        .slice(-8)
+    : [];
+
+const messages = [
+    {
+        role: "system",
+        content: (
+            systemPrompt +
+            `
 
 STATUS_ATENDIMENTO: ${STATUS_ATENDIMENTO}
 MINUTOS_RESTANTES: ${minutosRestantes}
 HORA_ATUAL: ${HORA_ATUAL}
-`).slice(0, 12000)
-            },
 
-            ...(Array.isArray(history) ? history : []),
+REGRAS CRÍTICAS:
+- Nunca invente ações como "arrumando impressora", "reiniciando sistema" ou similares
+- Se não tiver certeza, peça mais detalhes ao cliente
+- Não simule processos internos invisíveis
+`
+        ).slice(0, 12000)
+    },
 
-            { role: "user", content: message }
-        ];
+    ...safeHistory,
+
+    {
+        role: "user",
+        content: typeof message === "string" ? message.trim() : ""
+    }
+];
 
         const response = await axios.post(
             'https://api.groq.com/openai/v1/chat/completions',
